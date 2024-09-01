@@ -23,6 +23,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 unsigned int loadCubeMap(vector<std::string> faces);
+int randRange(int low,int high);
+
 // settings
 const unsigned int SCR_WIDTH = 1200;
 const unsigned int SCR_HEIGHT = 800;
@@ -64,7 +66,7 @@ struct ProgramState {
 
     void LoadFromFile(std::string filename);
     glm::vec3 tempPosition=glm::vec3(0.0f, 2.0f, 0.0f);
-    float tempRotation=0.0f;
+    // float tempRotation=0.0f;
 };
 void ProgramState::SaveToFile(std::string filename) {
     std::ofstream out(filename);
@@ -167,7 +169,16 @@ int main() {
     Model ourModel("resources/objects/backpack/backpack.obj");
     ourModel.SetShaderTextureNamePrefix("material.");
 
-   
+    Model Jar("resources/objects/AncientJar/Jar.obj");
+    Jar.SetShaderTextureNamePrefix("material.");
+    Model Temple("resources/objects/AncientTemple/obj/objTemple.obj");
+    Temple.SetShaderTextureNamePrefix("material.");
+    Model Well("resources/objects/MedievalWell/Well_OBJ.obj");
+    Well.SetShaderTextureNamePrefix("material.");
+    Model StoneGate("resources/objects/StoneGate/Stonegate.obj");
+    StoneGate.SetShaderTextureNamePrefix("material.");
+    Model Lantern("resources/objects/Lantern/Lantern.obj");
+    Lantern.SetShaderTextureNamePrefix("material.");
 
     // Point light
     PointLight& pointLight = programState->pointLight;
@@ -181,14 +192,14 @@ int main() {
     pointLight.quadratic = 0.032f;
 
 
-    //ravan
-    float ravanVertices[] = {
+    // plain
+    float plainVertices[] = {
             100.0f,  0.0f, -100.0f, 0.0f, 1.0f, 0.0f,   100.0f, 100.0f, // top right
             100.0f, 0.0f, 100.0f, 0.0f, 1.0f, 0.0f,  100.0f, 0.0f, // bottom right
             -100.0f, 0.0f, 100.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // bottom left
             -100.0f,  0.0f, -100.0f, 0.0f, 1.0f, 0.0f,  0.0f, 100.0f  // top left
     };
-    unsigned int ravanIndices[] = {
+    unsigned int plainIndices[] = {
             0, 1, 3, // first triangle
             1, 2, 3  // second triangle
     };
@@ -239,16 +250,16 @@ int main() {
             1.0f, -1.0f,  1.0f
     };
 
-    //ravan VAO
-    unsigned int ravanVBO, ravanVAO, ravanEBO;
-    glGenVertexArrays(1, &ravanVAO);
-    glGenBuffers(1, &ravanVBO);
-    glGenBuffers(1, &ravanEBO);
-    glBindVertexArray(ravanVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, ravanVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ravanVertices), ravanVertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ravanEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ravanIndices), ravanIndices, GL_STATIC_DRAW);
+    //plain VAO
+    unsigned int plainVBO, plainVAO, plainEBO;
+    glGenVertexArrays(1, &plainVAO);
+    glGenBuffers(1, &plainVBO);
+    glGenBuffers(1, &plainEBO);
+    glBindVertexArray(plainVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, plainVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(plainVertices), plainVertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, plainEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(plainIndices), plainIndices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -305,6 +316,13 @@ int main() {
     glm::vec3 lightPos(-5.0f, 4.0f, -5.0f);
     glm::mat4 model = glm::mat4(1.0f);
 
+    int randArrayX[50];
+    for(int i=0;i<50;i++)
+        randArrayX[i]= randRange(-50,50);
+    int randArrayY[50];
+    for(int i=0;i<50;i++)
+        randArrayY[i]= randRange(-50,50);
+
     // render loop
     while (!glfwWindowShouldClose(window)) {
         // per-frame time logic
@@ -359,25 +377,81 @@ int main() {
         ourShader.setFloat("pointLight.quadratic", 0.032f);
 
 
-        ourShader.setVec3("svetlo.position", programState->camera.Position);
-        ourShader.setVec3("svetlo.direction", programState->camera.Front);
-        ourShader.setVec3("svetlo.ambient", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("light.position", programState->camera.Position);
+        ourShader.setVec3("light.direction", programState->camera.Front);
+        ourShader.setVec3("light.ambient", 0.0f, 0.0f, 0.0f);
         if (programState->spotlight) {
-            ourShader.setVec3("svetlo.diffuse", 1.0f, 1.0f, 1.0f);
-            ourShader.setVec3("svetlo.specular", glm::vec3(0.5f));
+            ourShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
+            ourShader.setVec3("light.specular", glm::vec3(0.5f));
         } else {
-            ourShader.setVec3("svetlo.diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("svetlo.specular", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("light.diffuse", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("light.specular", 0.0f, 0.0f, 0.0f);
         }
-        ourShader.setFloat("svetlo.constant", 0.6f);
-        ourShader.setFloat("svetlo.linear", 0.9f);
-        ourShader.setFloat("svetlo.quadratic", 0.032f);
-        ourShader.setFloat("svetlo.cutOff", glm::cos(glm::radians(15.0f)));
-        ourShader.setFloat("svetlo.outerCutOff", glm::cos(glm::radians(30.0f)));
+        ourShader.setFloat("light.constant", 0.6f);
+        ourShader.setFloat("light.linear", 0.9f);
+        ourShader.setFloat("light.quadratic", 0.032f);
+        ourShader.setFloat("light.cutOff", glm::cos(glm::radians(15.0f)));
+        ourShader.setFloat("light.outerCutOff", glm::cos(glm::radians(30.0f)));
 
 
+        // Jars
+        for(int i = 0;i < 7; i++){
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(-13.0f - 3.5f * i,0.0f,-18.0f + 1.2f * i));
+            model = glm::scale(model, glm::vec3(0.05f));
+            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+            ourShader.setMat4("model", model);
+            Jar.Draw(ourShader);
 
-        //ravan
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(-13.0f - 3.5f * i,0.0f,18.0f - 1.2f * i));
+            model = glm::scale(model, glm::vec3(0.05f));
+            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+            ourShader.setMat4("model", model);
+            Jar.Draw(ourShader);
+        }
+
+        // Stone Gate
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f,-20.0f));
+        model = glm::scale(model, glm::vec3(2.0f));
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1, 0, 0));
+        ourShader.setMat4("model", model);
+        StoneGate.Draw(ourShader);
+
+        // Stone Gate 2
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f,20.0f));
+        model = glm::scale(model, glm::vec3(2.0f));
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1, 0, 0));
+        ourShader.setMat4("model", model);
+        StoneGate.Draw(ourShader);
+
+        // Temple
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(20.0f, 0.0f,0.0f));
+        model = glm::scale(model, glm::vec3(18.0f));
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1, 0, 0));
+        ourShader.setMat4("model", model);
+        Temple.Draw(ourShader);
+
+        // Well
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0, 0.0,0.0));
+        model = glm::scale(model, glm::vec3(0.04f));
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1, 0, 0));
+        ourShader.setMat4("model", model);
+        Well.Draw(ourShader);
+
+        // Lantern
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-13.0f, 0.0f,00.0f));
+        model = glm::scale(model, glm::vec3(11.0f));
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1, 0, 0));
+        ourShader.setMat4("model", model);
+        Lantern.Draw(ourShader);
+
+        // plain
         glDisable(GL_CULL_FACE);
 
         glActiveTexture(GL_TEXTURE0);
@@ -385,7 +459,7 @@ int main() {
 
         model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
-        glBindVertexArray(ravanVAO);
+        glBindVertexArray(plainVAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glEnable(GL_CULL_FACE);
 
@@ -618,4 +692,7 @@ unsigned int loadTexture(char const * path)
         stbi_image_free(data);
     }
     return textureID;
+}
+int randRange(int low,int high){
+    return rand()%(high-low) + low;
 }
