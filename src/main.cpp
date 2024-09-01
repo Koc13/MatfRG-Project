@@ -164,6 +164,7 @@ int main() {
     // build and compile shaders
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
+    Shader blendingShader("resources/shaders/blending.vs", "resources/shaders/blanding.fs");
 
     // load models
     Model ourModel("resources/objects/backpack/backpack.obj");
@@ -250,6 +251,17 @@ int main() {
             1.0f, -1.0f,  1.0f
     };
 
+    float transparentVertices[] = {
+            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+            1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+    };
+
     //plain VAO
     unsigned int plainVBO, plainVAO, plainEBO;
     glGenVertexArrays(1, &plainVAO);
@@ -308,6 +320,31 @@ int main() {
 
     unsigned int cubeMapTexture = loadCubeMap(faces);
 
+    // transparent VAO
+    unsigned int transparentVAO, transparentVBO;
+    glGenVertexArrays(1, &transparentVAO);
+    glGenBuffers(1, &transparentVBO);
+    glBindVertexArray(transparentVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+    // load transparent texture
+    unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/corn.png").c_str());
+
+    // transparent objects locations
+    vector<glm::vec3> vegetation
+            {
+                    glm::vec3(-15.0f, 0.0f, -4.8f),
+                    glm::vec3( 15.0f, 0.0f, 5.1f),
+                    glm::vec3( 12.0f, 0.0f, 7.0f),
+                    glm::vec3(-3.0f, 0.0f, -23.0f),
+                    glm::vec3 (5.0f, 0.0f, -6.0f)
+            };
 
     ourShader.use();
     ourShader.setInt("material.texture_diffuse1", 0);
@@ -322,6 +359,10 @@ int main() {
     int randArrayY[50];
     for(int i=0;i<50;i++)
         randArrayY[i]= randRange(-50,50);
+
+    // blending shader
+    blendingShader.use();
+    blendingShader.setInt("texture1", 0);
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
@@ -463,6 +504,18 @@ int main() {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glEnable(GL_CULL_FACE);
 
+        // vegetation
+        blendingShader.use();
+        glBindVertexArray(transparentVAO);
+        glBindTexture(GL_TEXTURE_2D, transparentTexture);
+        for (unsigned int i = 0; i < vegetation.size(); i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::scale(model, glm::vec3(10.0f));
+            model = glm::translate(model, vegetation[i]);
+            ourShader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
         //skybox
         skyboxShader.use();

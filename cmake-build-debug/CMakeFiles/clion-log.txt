@@ -1,4 +1,4 @@
-/opt/clion-2022.2.4/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/opt/clion-2022.2.4/bin/ninja/linux/ninja -G Ninja -S /home/matf-racunarska-grafika/Desktop/MatfRG-Project -B /home/matf-racunarska-grafika/Desktop/MatfRG-Project/cmake-build-debug
+/opt/clion-2022.2.4/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/matf-racunarska-grafika/Desktop/MatfRG-Project -B /home/matf-racunarska-grafika/Desktop/MatfRG-Project/cmake-build-debug
 -- The C compiler identification is GNU 9.4.0
 -- The CXX compiler identification is GNU 9.4.0
 -- Detecting C compiler ABI info
